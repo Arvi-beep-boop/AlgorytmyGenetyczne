@@ -1,8 +1,21 @@
+import argparse
+
+from utils import *
 
 VALUE_IDX = 0
 WEIGHT_IDX = 1
 
+PARSER = argparse.ArgumentParser(
+    prog='Backpack Problem',
+    description='Backpack Problem for university assignment',
+)
+
+PARSER.add_argument('-ic', '--iteration_count', type=int, default=10, help='Number of iterations')
+args = PARSER.parse_args()
+
+ITERATION_COUNT = args.iteration_count
 backpack = []
+
 
 def read_data(filepath, backpack):
     # EXPECTED FILE STRUCTURE:
@@ -18,6 +31,18 @@ def read_data(filepath, backpack):
             data = list(map(int, line.split()))
             backpack.append(data)
 
-read_data('../dane AG/low-dimensional/f1_l-d_kp_10_269', backpack)
+# read_data('../dane AG/low-dimensional/f1_l-d_kp_10_269', backpack)
 
-print(backpack)
+
+
+
+def main():
+    # print(backpack)
+    print(args.iteration_count)
+    ranking_selection()
+    tournament_selection()
+    roulette_selection()
+
+
+if __name__ == '__main__':
+    main()
