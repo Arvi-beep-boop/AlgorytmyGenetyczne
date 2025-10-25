@@ -68,8 +68,10 @@ def main():
 
     one_point_crossover(population[0], population[1])
     two_point_crossover(population[0], population[1])
+    first = population[0]
+    sample = mutate(.5, population[0])
 
-
+    print(sample)
 
 if __name__ == '__main__':
     main()
