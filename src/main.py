@@ -1,5 +1,7 @@
 import argparse
+from pathlib import Path
 
+from src.population import get_population
 from utils import *
 
 VALUE_IDX = 0
@@ -11,7 +13,10 @@ PARSER = argparse.ArgumentParser(
 )
 
 PARSER.add_argument('-ic', '--iteration_count', type=int, default=10, help='Number of iterations')
+PARSER.add_argument('-p', '--population_size', type=int, default=50, help='Population size')
+PARSER.add_argument('-f', '--file', type=Path, help='File path')
 args = PARSER.parse_args()
+filepath = args.file.resolve()
 
 ITERATION_COUNT = args.iteration_count
 backpack = []
@@ -23,6 +28,8 @@ def read_data(filepath, backpack):
     # wartosc_przedmiotu_1 waga_przedmiotu_1
     # ....
     # wartosc_przedmiotu_n waga_przedmiotu_n
+
+    #wagi przedmiotu nie mogą przekraczać pojemności, wartość chcemy jak największą
     with open(filepath, 'r') as file:
         while True:
             line = file.readline().strip()
@@ -38,10 +45,27 @@ def read_data(filepath, backpack):
 
 def main():
     # print(backpack)
+
+    """
+    1. process args etc
+    2. get the start population
+    3. start iteration
+    4. check if the sum of weight does not exceed
+    5. select the creatures
+    6. genetic operators
+    7. new population created
+    done
+
+    in the meantime save the data to make a chart
+    """
     print(args.iteration_count)
-    ranking_selection()
-    tournament_selection()
-    roulette_selection()
+    read_data(filepath, backpack)
+    print(backpack)
+    print(filepath)
+    population = get_population(args.population_size, backpack[0][0])
+    for elem in population:
+        print(elem)
+
 
 
 if __name__ == '__main__':
