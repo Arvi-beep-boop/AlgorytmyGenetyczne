@@ -14,6 +14,8 @@ PARSER = argparse.ArgumentParser(
 
 PARSER.add_argument('-ic', '--iteration_count', type=int, default=10, help='Number of iterations')
 PARSER.add_argument('-p', '--population_size', type=int, default=50, help='Population size')
+PARSER.add_argument('-m', '--mutation_rate', type=float, default=0.08, help='Mutation rate, 0.0-0.1 recommended')
+PARSER.add_argument('-cr', '--crossover_rate', type=float, default=0.7, help='Crossover rate, 0.5-1.0 recommended')
 PARSER.add_argument('-f', '--file', type=Path, help='File path')
 args = PARSER.parse_args()
 filepath = args.file.resolve()
