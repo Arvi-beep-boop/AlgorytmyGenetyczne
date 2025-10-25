@@ -66,6 +66,9 @@ def main():
     for elem in population:
         print(elem)
 
+    one_point_crossover(population[0], population[1])
+    two_point_crossover(population[0], population[1])
+
 
 
 if __name__ == '__main__':
