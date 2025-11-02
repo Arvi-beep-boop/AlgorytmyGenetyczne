@@ -9,4 +9,5 @@ __all__ = ["roulette_selection",
            "ranking_selection",
            "one_point_crossover",
            "two_point_crossover",
-           "mutate"]
+           "mutate",
+           "get_adaptive"]

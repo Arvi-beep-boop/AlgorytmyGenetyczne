@@ -60,20 +60,25 @@ def main():
 
     in the meantime save the data to make a chart
     """
-    print(args.iteration_count)
     read_data(filepath, backpack)
-    print(backpack)
-    print(filepath)
-    population = get_population(args.population_size, backpack[0][0])
-    for elem in population:
-        print(elem)
 
-    one_point_crossover(population[0], population[1])
-    two_point_crossover(population[0], population[1])
-    first = population[0]
-    sample = mutate(.5, population[0])
+    for _ in range(ITERATION_COUNT):
+        #population
+        population = get_population(args.population_size, backpack[0][0])
+        #selection
+        population = get_adaptive(population, backpack)
+        # genetic operators, select one I think?
 
-    print(sample)
+        print(population)
+        print(len(population))
+        print("=========================================")
+
+    # one_point_crossover(population[0], population[1])
+    # two_point_crossover(population[0], population[1])
+    # first = population[0]
+    # sample = mutate(.5, population[0])
+
+    # print(sample)
 
 if __name__ == '__main__':
     main()
