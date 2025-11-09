@@ -98,7 +98,7 @@ def main():
             # select 2 parents
             parent_one, parent_two = selection_function(adaptive_with_values)
             # crossover
-            child_one, child_two = crossover_function(parent_one, parent_two)
+            child_one, child_two = crossover_function(parent_one, parent_two, args.crossover_rate)
             # mutation
             child_one = mutate(args.mutation_rate, child_one)
             child_two = mutate(args.mutation_rate, child_two)

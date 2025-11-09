@@ -1,6 +1,9 @@
 import random
 
-def one_point_crossover(parent1, parent2):
+def one_point_crossover(parent1, parent2, probability):
+    p = random.random()
+    if p > probability:
+        return parent1, parent2
     max_point = len(parent1) - 1
     min_point = 1
     crossover_point = random.randint(min_point, max_point)
@@ -8,7 +11,11 @@ def one_point_crossover(parent1, parent2):
     new_parent2 = parent2[:crossover_point] + parent1[crossover_point:]
     return new_parent1, new_parent2
 
-def two_point_crossover(parent1, parent2):
+def two_point_crossover(parent1, parent2, probability):
+    p = random.random()
+    if p > probability:
+        return parent1, parent2
+
     max_point = len(parent1) - 1
     min_point = 1
     crossover_point_1 = random.randint(min_point, max_point)
