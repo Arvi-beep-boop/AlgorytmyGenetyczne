@@ -23,6 +23,6 @@ def get_adaptive_with_values(adapted_population, backpack):
         for i in range(0, len(creature)):
             if creature[i] > 0:
                 sum_weights += backpack[i+1][1]
-        new_population.append([creature, sum_weights if sum_weights <= max_sum_weights  else 0])
+        new_population.append([creature, sum_weights if sum_weights <= max_sum_weights else 0])
 
     return new_population
