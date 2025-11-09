@@ -62,11 +62,11 @@ def main():
     """
     read_data(filepath, backpack)
 
+    population = get_population(args.population_size, backpack[0][0])
+
     for _ in range(ITERATION_COUNT):
-        #population
-        population = get_population(args.population_size, backpack[0][0])
-        #selection
-        population = get_adaptive(population, backpack)
+        adaptive_with_values = get_adaptive_with_values(population, backpack)
+        a, b = roulette_selection(adaptive_with_values)
         # genetic operators, select one I think?
 
         print(population)

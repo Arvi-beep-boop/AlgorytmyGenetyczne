@@ -10,4 +10,5 @@ __all__ = ["roulette_selection",
            "one_point_crossover",
            "two_point_crossover",
            "mutate",
-           "get_adaptive"]
+           "get_adaptive",
+           "get_adaptive_with_values"]
