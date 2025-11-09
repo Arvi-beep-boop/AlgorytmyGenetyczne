@@ -61,7 +61,6 @@ def read_data(filepath, backpack):
 
 
 def main():
-    # print(backpack)
 
     """
     1. process args etc
@@ -107,6 +106,26 @@ def main():
             new_population.append(child_two)
         # replacing population
         population = new_population
+
+    #now time to format & save the outputs
+    best_in_given_iteration_output = open("outputs/best_in_given_iteration.txt", "w")
+    best_in_given_iteration_output.write(f"Iteration no. | highest value | weight | node\n")
+    for i, best in enumerate(best_in_given_iteration):
+        weight = 0
+        node = best[0]
+        for j in range(0, len(node)):
+            if node[j] > 0:
+                weight += backpack[j+1][1]
+
+        best_in_given_iteration_output.write(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
+        print(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
+
+
+    for i, iteration in enumerate(population_history):
+        iteration_output = open("outputs/iteration_" + str(i) + ".txt", "w")
+        for node in iteration:
+            iteration_output.write(f"{node[0]} | {node[1]}\n")
+
 
 
 if __name__ == '__main__':
