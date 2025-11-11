@@ -83,7 +83,7 @@ def main():
     # maybe I'll use this for charts/graphs idk
     population_history = []
     best_in_given_iteration = []
-    population = get_population(args.population_size, backpack[0][0])
+    population = get_population(args.population_size, backpack[0][0], backpack)
 
     for _ in range(ITERATION_COUNT):
         adaptive_with_values = get_adaptive_with_values(population, backpack)
@@ -91,9 +91,12 @@ def main():
         population_history.append(adaptive_with_values)
         best = max(adaptive_with_values, key=lambda x: x[1])
         best_in_given_iteration.append(best)
+        best_ten_creatures = sorted(adaptive_with_values, key=lambda x: x[1], reverse=True)[:10]
 
         new_population = []
-        for i in range(0, int(args.population_size/2)):
+        for b in best_ten_creatures:
+            new_population.append(b[0])
+        for i in range(0, int((args.population_size-10)/2)):
             # select 2 parents
             parent_one, parent_two = selection_function(adaptive_with_values)
             # crossover
@@ -121,10 +124,10 @@ def main():
         print(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
 
 
-    for i, iteration in enumerate(population_history):
-        iteration_output = open("outputs/iteration_" + str(i) + ".txt", "w")
-        for node in iteration:
-            iteration_output.write(f"{node[0]} | {node[1]}\n")
+    # for i, iteration in enumerate(population_history):
+    #     iteration_output = open("outputs/iteration_" + str(i) + ".txt", "w")
+    #     for node in iteration:
+    #         iteration_output.write(f"{node[0]} | {node[1]}\n")
 
 
 
