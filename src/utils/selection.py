@@ -38,15 +38,15 @@ def parent_finder(p, probability_list):
 def tournament_selection(population_with_values):
     population_size = len(population_with_values)
     max_size = max(2, int(math.sqrt(population_size)))
-    tournament_size = random.randint(2, int(math.sqrt(population_size)))
+    tournament_size = random.randint(2, max_size)
     winners = []
     population_without_zeros = [individual for individual in population_with_values if individual[1] > 0]
 
-    for _ in range(tournament_size):
+    for _ in range(2):
         candidates = random.sample(population_without_zeros, tournament_size)
         winner = max(candidates, key=lambda x: x[1])
         winners.append(winner)
-    return winners[0], winners[1]
+    return winners[0][0], winners[1][0]
 
 
 def ranking_selection(population_with_values):

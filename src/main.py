@@ -125,7 +125,7 @@ def main():
                 weight += backpack[j+1][1]
 
         best_in_given_iteration_output.write(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
-        print(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
+        # print(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
     best_in_given_iteration_output.write(f"Operation time - {operation_time_end- operation_time_start}")
 
     # for i, iteration in enumerate(population_history):
@@ -136,4 +136,7 @@ def main():
 
 
 if __name__ == '__main__':
+    start = datetime.datetime.now()
     main()
+    end = datetime.datetime.now()
+    print(f'Simulation saved to file, elapsed time: { end - start}')
