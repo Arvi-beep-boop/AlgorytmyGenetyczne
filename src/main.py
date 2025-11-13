@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+import datetime
 
 from src.population import get_population
 from utils import *
@@ -26,8 +27,8 @@ PARSER = argparse.ArgumentParser(
 )
 
 PARSER.add_argument('-ic', '--iteration_count', type=int, default=10, help='Number of iterations')
-PARSER.add_argument('-p', '--population_size', type=int, default=50, help='Population size')
-PARSER.add_argument('-m', '--mutation_rate', type=float, default=0.08, help='Mutation rate, 0.0-0.1 recommended')
+PARSER.add_argument('-p', '--population_size', type=int, default=500, help='Population size')
+PARSER.add_argument('-m', '--mutation_rate', type=float, default=0.05, help='Mutation rate, 0.0-0.1 recommended')
 PARSER.add_argument('-cr', '--crossover_rate', type=float, default=0.7, help='Crossover rate, 0.5-1.0 recommended')
 PARSER.add_argument("--crossover", choices=crossover_methods.keys(), default="one_point", help="Crossover method: one_point or two_point")
 PARSER.add_argument("--selection", choices=selection_methods.keys(), default="roulette", help="Selection method: tournament, roulette or ranking")
@@ -37,6 +38,8 @@ filepath = args.file.resolve()
 
 ITERATION_COUNT = args.iteration_count
 backpack = []
+operation_time_start = 0
+operation_time_end = 0
 
 
 def read_data(filepath, backpack):
@@ -86,6 +89,7 @@ def main():
     population = get_population(args.population_size, backpack[0][0], backpack)
 
     for _ in range(ITERATION_COUNT):
+        operation_time_start = datetime.datetime.now()
         adaptive_with_values = get_adaptive_with_values(population, backpack)
         # save the best sample from adaptive with values before mutating etc
         population_history.append(adaptive_with_values)
@@ -109,7 +113,7 @@ def main():
             new_population.append(child_two)
         # replacing population
         population = new_population
-
+    operation_time_end = datetime.datetime.now()
     #now time to format & save the outputs
     best_in_given_iteration_output = open("outputs/best_in_given_iteration.txt", "w")
     best_in_given_iteration_output.write(f"Iteration no. | highest value | weight | node\n")
@@ -122,7 +126,7 @@ def main():
 
         best_in_given_iteration_output.write(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
         print(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
-
+    best_in_given_iteration_output.write(f"Operation time - {operation_time_end- operation_time_start}")
 
     # for i, iteration in enumerate(population_history):
     #     iteration_output = open("outputs/iteration_" + str(i) + ".txt", "w")
