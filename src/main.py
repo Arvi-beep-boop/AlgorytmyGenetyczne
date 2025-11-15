@@ -28,8 +28,8 @@ PARSER = argparse.ArgumentParser(
 
 PARSER.add_argument('-ic', '--iteration_count', type=int, default=10, help='Number of iterations')
 PARSER.add_argument('-p', '--population_size', type=int, default=500, help='Population size')
-PARSER.add_argument('-m', '--mutation_rate', type=float, default=0.05, help='Mutation rate, 0.0-0.1 recommended')
-PARSER.add_argument('-cr', '--crossover_rate', type=float, default=0.7, help='Crossover rate, 0.5-1.0 recommended')
+PARSER.add_argument('-m', '--mutation_rate', type=float, default=0.01, help='Mutation rate, 0.0-0.1 recommended')
+PARSER.add_argument('-cr', '--crossover_rate', type=float, default=0.5, help='Crossover rate, 0.5-1.0 recommended')
 PARSER.add_argument("--crossover", choices=crossover_methods.keys(), default="one_point", help="Crossover method: one_point or two_point")
 PARSER.add_argument("--selection", choices=selection_methods.keys(), default="roulette", help="Selection method: tournament, roulette or ranking")
 PARSER.add_argument('-f', '--file', type=Path, help='File path')
@@ -117,6 +117,9 @@ def main():
     #now time to format & save the outputs
     best_in_given_iteration_output = open("outputs/best_in_given_iteration.txt", "w")
     best_in_given_iteration_output.write(f"Iteration no. | highest value | weight | node\n")
+    best_limited_output = open("outputs/best_limited_output.txt", "w")
+    best_limited_output.write(f"Iteration no. | highest value\n")
+
     for i, best in enumerate(best_in_given_iteration):
         weight = 0
         node = best[0]
@@ -126,6 +129,13 @@ def main():
 
         best_in_given_iteration_output.write(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
         # print(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
+        if i == 0:
+            best_limited_output.write(f"{i+1} | {best_in_given_iteration[i][1]}\n")
+        else:
+            if i >= 1 and (best_in_given_iteration[i-1][1] != best_in_given_iteration[i][1]) :
+                best_limited_output.write(f"{i+1} | {best_in_given_iteration[i][1]}\n")
+
+
     best_in_given_iteration_output.write(f"Operation time - {operation_time_end- operation_time_start}")
 
     # for i, iteration in enumerate(population_history):
