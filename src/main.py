@@ -4,28 +4,35 @@ from matplotlib.ticker import MaxNLocator
 from src.population import get_population
 from utils import *
 
-
 backpack = []
 population_history = []
 results_table = []
+optimum_value = None
 
+#=============================================================DEFAULT SETTINGS========================================================================
 
-# DEFAULT SETTINGS
-mode = "test_6"
-    # Test_1 - Basic
-    # Test_2 - Mutacje 0.006 -> 0.01
-    # Test_3 - Krzyżowanie 0.06 -> 1
-    # Test_4 - Ruletka Ranking
-    # Test_5 - Krzyżowanie One- TwoPoint
-    # Test_6 - Ruletka Ranking Turniej
+# Wstaw path dla danych i optimum
 file_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale\knapPI_1_100_1000_1")
 file_optimum_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale-optimum\knapPI_1_100_1000_1")
+
+# Wybierz rodzaj testu
+mode = "test_3"
+    # "test_1" - Basic                          - jeden wykres
+    # "test_2" - Mutacje 0.006 -> 0.01          - podajesz górną granicę mutation_rate, (iteruje od dołu 5 razy co 0.001)
+    # "test_3" - Krzyżowanie 0.06 -> 1          - tu crossover_rate nie ustawiaj więcej jak 0.5 (iteruje 6 razy co 0.1 do wartości 1)
+    # "test_4" - Ruletka Ranking                - selection_type nie jest uwzględniana
+    # "test_5" - Krzyżowanie One- TwoPoint      - crossover_type nie jest uwzględniane
+    # "test_6" - Ruletka Ranking Turniej        - selection_type nie jest uwzględniana
+
+# Ustaw dowolnie iteracje i populacje, ew mutation rate lub crossover rate
 iteration_count = 200
 population_size = 50
 mutation_rate = 0.01
-crossover_rate = 0.5 # nie ustawiaj więcej jak 0.5
-optimum_value = None
+crossover_type ="one_point"     # "one_point" "two_point"
+crossover_rate = 0.5
+selection_type = "roulette"     # "roulette", "ranking", "tournament"
 
+#=====================================================================================================================================================
 
 crossover_methods = {
     "one_point": one_point_crossover,
@@ -143,7 +150,7 @@ def draw_plot():
             legend_title = "Mutation rate"
 
         case "test_3":  # porównanie wartości krzyżowania
-            for i in range(5):
+            for i in range(6):
                 plt.plot(iterations, results_table[i][0], label=str(results_table[i][1]["crossover_rate"]))
             plt.title("COMPARISON OF CROSSOVER RATES", fontsize=font_size)
             legend_title = "Crossover rate"
@@ -231,26 +238,25 @@ def main():
 
     match mode:
         case "test_1":  # podstawowy pojedyńczy wykres problemu
-            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "roulette"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, crossover_type, selection_type))
         case "test_2":  # porównanie wartości mutacji
             for i in range(5):
                 results_table.append(
-                    solve_knapsack(round(mutation_rate - (0.004 - 0.001 * i), 3), crossover_rate, "one_point",
-                                   "roulette"))
+                    solve_knapsack(round(mutation_rate - (0.004 - 0.001 * i), 3), crossover_rate, crossover_type,selection_type))
         case "test_3":  # porównanie wartości krzyżowania
-            for i in range(5):
-                results_table.append(solve_knapsack(mutation_rate, crossover_rate + (0.1 * i), "one_point", "roulette"))
+            for i in range(6):
+                results_table.append(solve_knapsack(mutation_rate, crossover_rate + (0.1 * i), crossover_type, selection_type))
         case "test_4":  # porównanie selekcji ruletki i rankingu
-            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "roulette"))
-            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "ranking"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, crossover_type, "roulette"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, crossover_type, "ranking"))
             draw_plot()
         case "test_5":  # porównanie krzyżowania jedno- i dwupunktowego
-            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "roulette"))
-            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "two_point", "roulette"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", selection_type))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "two_point", selection_type))
         case "test_6":  # porównanie selekcji ruletki, rankingu, turnieju
-            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "roulette"))
-            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "ranking"))
-            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "tournament"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, crossover_type, "roulette"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, crossover_type, "ranking"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, crossover_type, "tournament"))
 
     draw_plot()
 
