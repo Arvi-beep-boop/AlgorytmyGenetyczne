@@ -1,11 +1,31 @@
-import argparse
 from pathlib import Path
-import datetime
-
+import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from src.population import get_population
 from utils import *
 
-## METHODS
+
+backpack = []
+population_history = []
+results_table = []
+
+
+# DEFAULT SETTINGS
+mode = "test_6"
+    # Test_1 - Basic
+    # Test_2 - Mutacje 0.006 -> 0.01
+    # Test_3 - Krzyżowanie 0.06 -> 1
+    # Test_4 - Ruletka Ranking
+    # Test_5 - Krzyżowanie One- TwoPoint
+    # Test_6 - Ruletka Ranking Turniej
+file_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale\knapPI_1_100_1000_1")
+file_optimum_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale-optimum\knapPI_1_100_1000_1")
+iteration_count = 200
+population_size = 50
+mutation_rate = 0.01
+crossover_rate = 0.5 # nie ustawiaj więcej jak 0.5
+optimum_value = None
+
 
 crossover_methods = {
     "one_point": one_point_crossover,
@@ -18,39 +38,10 @@ selection_methods = {
     "ranking": ranking_selection,
 }
 
-VALUE_IDX = 0
-WEIGHT_IDX = 1
 
-PARSER = argparse.ArgumentParser(
-    prog='Backpack Problem',
-    description='Backpack Problem for university assignment',
-)
-
-PARSER.add_argument('-ic', '--iteration_count', type=int, default=10, help='Number of iterations')
-PARSER.add_argument('-p', '--population_size', type=int, default=500, help='Population size')
-PARSER.add_argument('-m', '--mutation_rate', type=float, default=0.01, help='Mutation rate, 0.0-0.1 recommended')
-PARSER.add_argument('-cr', '--crossover_rate', type=float, default=0.5, help='Crossover rate, 0.5-1.0 recommended')
-PARSER.add_argument("--crossover", choices=crossover_methods.keys(), default="one_point", help="Crossover method: one_point or two_point")
-PARSER.add_argument("--selection", choices=selection_methods.keys(), default="roulette", help="Selection method: tournament, roulette or ranking")
-PARSER.add_argument('-f', '--file', type=Path, help='File path')
-args = PARSER.parse_args()
-filepath = args.file.resolve()
-
-ITERATION_COUNT = args.iteration_count
-backpack = []
-operation_time_start = 0
-operation_time_end = 0
-
-
-def read_data(filepath, backpack):
-    # EXPECTED FILE STRUCTURE:
-    # Wielkosc_problemu pojemnosc
-    # wartosc_przedmiotu_1 waga_przedmiotu_1
-    # ....
-    # wartosc_przedmiotu_n waga_przedmiotu_n
-
-    #wagi przedmiotu nie mogą przekraczać pojemności, wartość chcemy jak największą
-    with open(filepath, 'r') as file:
+def read_data(backpack):
+    global optimum_value
+    with open(file_path, 'r') as file:
         while True:
             line = file.readline().strip()
             if not line:
@@ -58,14 +49,171 @@ def read_data(filepath, backpack):
             data = list(map(int, line.split()))
             backpack.append(data)
 
-# read_data('../dane AG/low-dimensional/f1_l-d_kp_10_269', backpack)
+    with open(file_optimum_path, "r") as f:
+        line2 = f.read().strip()
+        optimum_value = float(line2)
+        if optimum_value.is_integer():
+            optimum_value = int(optimum_value)
 
 
+def solve_knapsack(m_rate, c_rate, c_type, s_type):
+    crossover_function = crossover_methods[c_type]
+    selection_function = selection_methods[s_type]
+    read_data(backpack)
+    best_in_given_iteration = []
+    population = get_population(population_size, backpack[0][0], backpack)
+    for _ in range(iteration_count):
+        adaptive_with_values = get_adaptive_with_values(population, backpack)
+        # save the best sample from adaptive with values before mutating etc
+        population_history.append(adaptive_with_values)
+        best = max(adaptive_with_values, key=lambda x: x[1])
+        best_in_given_iteration.append(best)
+        best_ten_creatures = sorted(adaptive_with_values, key=lambda x: x[1], reverse=True)[:10]
+        new_population = []
+        for b in best_ten_creatures:
+            new_population.append(b[0])
+        for i in range(0, int((population_size - 10) / 2)):
+            # select 2 parents
+            parent_one, parent_two = selection_function(adaptive_with_values)
+            # crossover
+            child_one, child_two = crossover_function(parent_one, parent_two, c_rate)
+            # mutation
+            child_one = mutate(m_rate, child_one)
+            child_two = mutate(m_rate, child_two)
+            # saving to new population
+            new_population.append(child_one)
+            new_population.append(child_two)
+        # replacing population
+        population = new_population
+    # now time to format & save the outputs
+    best_in_given_iteration_output = open("outputs/best_in_given_iteration.txt", "w")
+    best_in_given_iteration_output.write(f"Iteration no. | highest value | weight | node\n")
+    best_limited_output = open("outputs/best_limited_output.txt", "w")
+    best_limited_output.write(f"Iteration no. | highest value\n")
+
+    for i, best in enumerate(best_in_given_iteration):
+        weight = 0
+        node = best[0]
+        for j in range(0, len(node)):
+            if node[j] > 0:
+                weight += backpack[j + 1][1]
+
+        best_in_given_iteration_output.write(
+            f"{i + 1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
+        # print(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
+        if i == 0:
+            best_limited_output.write(f"{i + 1} | {best_in_given_iteration[i][1]}\n")
+        else:
+            if i >= 1 and (best_in_given_iteration[i - 1][1] != best_in_given_iteration[i][1]):
+                best_limited_output.write(f"{i + 1} | {best_in_given_iteration[i][1]}\n")
+
+    result = [x[1] for i, x in enumerate(best_in_given_iteration)]
+
+    # parametry zwracane razem z wynikami do tablicy results_table
+    params = {
+        "mutation_rate": m_rate,
+        "crossover_rate": c_rate,
+        "crossover_type": c_type,
+        "selection_type": s_type
+    }
+
+    return (result, params)
+
+
+def draw_plot():
+    # Funkcja rysująca wykres
+    # Ustawienia początkowe
+    iterations = list(range(1, iteration_count + 1))  # lista iteracji dla osi X
+    plt.figure(figsize=(24, 12))  # rozmiar okna
+    font_size = 18                # większa czcionka dla tytułów
+    second_font_size = 12         # mniejsza czcionka dla ticków i napisów dodatkowych
+
+    # Rysowanie linii / dane zależne od trybu
+    legend_title = None  # inicjalizacja zmiennej legendy
+
+    match mode:
+        case "test_1":  # podstawowy pojedynczy wykres problemu
+            plt.plot(iterations, results_table[0][0])
+            plt.title("KNAPSACK RESULTS", fontsize=font_size)
+
+        case "test_2":  # porównanie wartości mutacji
+            for i in range(5):
+                plt.plot(iterations, results_table[i][0], label=str(results_table[i][1]["mutation_rate"]))
+            plt.title("COMPARISON OF MUTATION RATES", fontsize=font_size)
+            legend_title = "Mutation rate"
+
+        case "test_3":  # porównanie wartości krzyżowania
+            for i in range(5):
+                plt.plot(iterations, results_table[i][0], label=str(results_table[i][1]["crossover_rate"]))
+            plt.title("COMPARISON OF CROSSOVER RATES", fontsize=font_size)
+            legend_title = "Crossover rate"
+
+        case "test_4":  # porównanie selekcji ruletki i rankingu
+            plt.plot(iterations, results_table[0][0], label=results_table[0][1]["selection_type"])
+            plt.plot(iterations, results_table[1][0], label=results_table[1][1]["selection_type"])
+            plt.title("COMPARISON OF SELECTION TYPES", fontsize=font_size)
+            legend_title = "Selection type"
+
+        case "test_5":  # porównanie krzyżowania jedno- i dwupunktowego
+            plt.plot(iterations, results_table[0][0], label=results_table[0][1]["crossover_type"])
+            plt.plot(iterations, results_table[1][0], label=results_table[1][1]["crossover_type"])
+            plt.title("COMPARISON OF CROSSOVER TYPES", fontsize=font_size)
+            legend_title = "Crossover type"
+
+        case "test_6":  # porównanie selekcji ruletki, rankingu, turnieju
+            plt.plot(iterations, results_table[0][0], label=results_table[0][1]["selection_type"])
+            plt.plot(iterations, results_table[1][0], label=results_table[1][1]["selection_type"])
+            plt.plot(iterations, results_table[2][0], label=results_table[2][1]["selection_type"])
+            plt.title("COMPARISON OF SELECTION TYPES", fontsize=font_size)
+            legend_title = "Selection type"
+
+
+    # Dodatki po narysowaniu linii
+    # Linia optimum i napis nad nią
+    plt.axhline(y=optimum_value, color='green', linestyle='-')
+    plt.text(
+        x=len(iterations)/2,
+        y=optimum_value,
+        s=f'Optimum = {optimum_value}',
+        color='green',
+        va='center',
+        ha='center',
+        backgroundcolor='white',
+        fontsize=second_font_size
+    )
+
+    # Tytuły osi
+    plt.xlabel("Iteration", fontsize=font_size)
+    plt.ylabel("Value", fontsize=font_size)
+
+    # Rozmiar wartości osi (ticków)
+    plt.tick_params(axis='x', labelsize=second_font_size)
+    plt.tick_params(axis='y', labelsize=second_font_size)
+
+    # Wymuszenie osi X na wartości całkowite
+    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
+
+    # Legenda (tylko jeśli jest potrzeba)
+    handles, labels = plt.gca().get_legend_handles_labels()
+    if legend_title is not None:
+        plt.legend(
+            handles[::-1],
+            labels[::-1],
+            loc='best',
+            title=legend_title,
+            fontsize=second_font_size,
+            title_fontsize=second_font_size
+        )
+
+
+    # Wyświetlenie wykresu
+    plt.show()
+    return
 
 
 def main():
-
     """
+    0. select type of comparing
     1. process args etc
     2. get the start population
     3. start iteration
@@ -77,76 +225,34 @@ def main():
 
     in the meantime save the data to make a chart
     """
-    # chose the methods from args
-    crossover_function = crossover_methods[args.crossover]
-    selection_function = selection_methods[args.selection]
+    global results_table
 
-    read_data(filepath, backpack)
+    # W results_table zachowuję historię wyników dla poszczególnych zmian w wartościach mutacji krzyżowania i selekcji
 
-    # maybe I'll use this for charts/graphs idk
-    population_history = []
-    best_in_given_iteration = []
-    population = get_population(args.population_size, backpack[0][0], backpack)
+    match mode:
+        case "test_1":  # podstawowy pojedyńczy wykres problemu
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "roulette"))
+        case "test_2":  # porównanie wartości mutacji
+            for i in range(5):
+                results_table.append(
+                    solve_knapsack(round(mutation_rate - (0.004 - 0.001 * i), 3), crossover_rate, "one_point",
+                                   "roulette"))
+        case "test_3":  # porównanie wartości krzyżowania
+            for i in range(5):
+                results_table.append(solve_knapsack(mutation_rate, crossover_rate + (0.1 * i), "one_point", "roulette"))
+        case "test_4":  # porównanie selekcji ruletki i rankingu
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "roulette"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "ranking"))
+            draw_plot()
+        case "test_5":  # porównanie krzyżowania jedno- i dwupunktowego
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "roulette"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "two_point", "roulette"))
+        case "test_6":  # porównanie selekcji ruletki, rankingu, turnieju
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "roulette"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "ranking"))
+            results_table.append(solve_knapsack(mutation_rate, crossover_rate, "one_point", "tournament"))
 
-    for _ in range(ITERATION_COUNT):
-        operation_time_start = datetime.datetime.now()
-        adaptive_with_values = get_adaptive_with_values(population, backpack)
-        # save the best sample from adaptive with values before mutating etc
-        population_history.append(adaptive_with_values)
-        best = max(adaptive_with_values, key=lambda x: x[1])
-        best_in_given_iteration.append(best)
-        best_ten_creatures = sorted(adaptive_with_values, key=lambda x: x[1], reverse=True)[:10]
-
-        new_population = []
-        for b in best_ten_creatures:
-            new_population.append(b[0])
-        for i in range(0, int((args.population_size-10)/2)):
-            # select 2 parents
-            parent_one, parent_two = selection_function(adaptive_with_values)
-            # crossover
-            child_one, child_two = crossover_function(parent_one, parent_two, args.crossover_rate)
-            # mutation
-            child_one = mutate(args.mutation_rate, child_one)
-            child_two = mutate(args.mutation_rate, child_two)
-            # saving to new population
-            new_population.append(child_one)
-            new_population.append(child_two)
-        # replacing population
-        population = new_population
-    operation_time_end = datetime.datetime.now()
-    #now time to format & save the outputs
-    best_in_given_iteration_output = open("outputs/best_in_given_iteration.txt", "w")
-    best_in_given_iteration_output.write(f"Iteration no. | highest value | weight | node\n")
-    best_limited_output = open("outputs/best_limited_output.txt", "w")
-    best_limited_output.write(f"Iteration no. | highest value\n")
-
-    for i, best in enumerate(best_in_given_iteration):
-        weight = 0
-        node = best[0]
-        for j in range(0, len(node)):
-            if node[j] > 0:
-                weight += backpack[j+1][1]
-
-        best_in_given_iteration_output.write(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
-        # print(f"{i+1} | {best_in_given_iteration[i][1]} | {weight} | {best_in_given_iteration[i][0]}\n")
-        if i == 0:
-            best_limited_output.write(f"{i+1} | {best_in_given_iteration[i][1]}\n")
-        else:
-            if i >= 1 and (best_in_given_iteration[i-1][1] != best_in_given_iteration[i][1]) :
-                best_limited_output.write(f"{i+1} | {best_in_given_iteration[i][1]}\n")
-
-
-    best_in_given_iteration_output.write(f"Operation time - {operation_time_end- operation_time_start}")
-
-    # for i, iteration in enumerate(population_history):
-    #     iteration_output = open("outputs/iteration_" + str(i) + ".txt", "w")
-    #     for node in iteration:
-    #         iteration_output.write(f"{node[0]} | {node[1]}\n")
-
-
+    draw_plot()
 
 if __name__ == '__main__':
-    start = datetime.datetime.now()
     main()
-    end = datetime.datetime.now()
-    print(f'Simulation saved to file, elapsed time: { end - start}')
