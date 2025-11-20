@@ -64,6 +64,9 @@ def read_data(backpack):
 
 
 def solve_knapsack(m_rate, c_rate, c_type, s_type):
+    # funkcja przyjmuje wartości mutacji, krzyżowania, typ krzyżowania i typ selekcji
+    # zwraca wygenerowaną krotkę z wygenerowaną listą "result" i parametrami obliczeń "params" do tabeli results_table
+
     crossover_function = crossover_methods[c_type]
     selection_function = selection_methods[s_type]
     read_data(backpack)
@@ -130,10 +133,10 @@ def solve_knapsack(m_rate, c_rate, c_type, s_type):
 def draw_plot():
     # Funkcja rysująca wykres
     # Ustawienia początkowe
-    iterations = list(range(1, iteration_count + 1))  # lista iteracji dla osi X
-    plt.figure(figsize=(24, 12))  # rozmiar okna
-    font_size = 18                # większa czcionka dla tytułów
-    second_font_size = 12         # mniejsza czcionka dla ticków i napisów dodatkowych
+    iterations = list(range(1, iteration_count + 1))    # lista iteracji dla osi X
+    plt.figure(figsize=(24, 12))                        # rozmiar okna
+    font_size = 18                                      # większa czcionka dla tytułów
+    second_font_size = 12                               # mniejsza czcionka dla ticków i napisów dodatkowych
 
     # Rysowanie linii / dane zależne od trybu
     legend_title = None  # inicjalizacja zmiennej legendy
