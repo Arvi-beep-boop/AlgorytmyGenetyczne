@@ -4,6 +4,7 @@ from matplotlib.ticker import MaxNLocator
 from src.population import get_population
 from utils import *
 
+
 backpack = []
 population_history = []
 results_table = []
@@ -12,11 +13,12 @@ optimum_value = None
 #=============================================================DEFAULT SETTINGS========================================================================
 
 # Wstaw path dla danych i optimum
-file_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale\knapPI_1_100_1000_1")
-file_optimum_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale-optimum\knapPI_1_100_1000_1")
+file_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale\knapPI_1_10000_1000_1")
+file_optimum_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale-optimum\knapPI_1_10000_1000_1")
+file_name = file_path.name
 
 # Wybierz rodzaj testu
-mode = "test_3"
+mode = "test_1"
     # "test_1" - Basic                          - jeden wykres
     # "test_2" - Mutacje 0.006 -> 0.01          - podajesz górną granicę mutation_rate, (iteruje od dołu 5 razy co 0.001)
     # "test_3" - Krzyżowanie 0.06 -> 1          - tu crossover_rate nie ustawiaj więcej jak 0.5 (iteruje 6 razy co 0.1 do wartości 1)
@@ -25,8 +27,8 @@ mode = "test_3"
     # "test_6" - Ruletka Ranking Turniej        - selection_type nie jest uwzględniana
 
 # Ustaw dowolnie iteracje i populacje, ew mutation rate lub crossover rate
-iteration_count = 200
-population_size = 50
+iteration_count = 100
+population_size = 1000
 mutation_rate = 0.01
 crossover_type ="one_point"     # "one_point" "two_point"
 crossover_rate = 0.5
@@ -73,6 +75,7 @@ def solve_knapsack(m_rate, c_rate, c_type, s_type):
     best_in_given_iteration = []
     population = get_population(population_size, backpack[0][0], backpack)
     for _ in range(iteration_count):
+        print(_)
         adaptive_with_values = get_adaptive_with_values(population, backpack)
         # save the best sample from adaptive with values before mutating etc
         population_history.append(adaptive_with_values)
@@ -134,7 +137,7 @@ def draw_plot():
     # Funkcja rysująca wykres
     # Ustawienia początkowe
     iterations = list(range(1, iteration_count + 1))    # lista iteracji dla osi X
-    plt.figure(figsize=(24, 12))                        # rozmiar okna
+    fig = plt.figure(figsize=(24,12))                    # rozmiar okna parametrów
     font_size = 18                                      # większa czcionka dla tytułów
     second_font_size = 12                               # mniejsza czcionka dla ticków i napisów dodatkowych
 
@@ -144,7 +147,7 @@ def draw_plot():
     match mode:
         case "test_1":  # podstawowy pojedynczy wykres problemu
             plt.plot(iterations, results_table[0][0])
-            plt.title("KNAPSACK RESULTS", fontsize=font_size)
+            plt.title(f"KNAPSACK RESULTS\n {file_name}", fontsize=font_size)
 
         case "test_2":  # porównanie wartości mutacji
             for i in range(5):
@@ -214,6 +217,46 @@ def draw_plot():
             fontsize=second_font_size,
             title_fontsize=second_font_size
         )
+    if mode == "test_1":
+        plt.text(
+            max(iterations),  # ostatnia wartość osi X
+            results_table[0][0][-1],  # ostatnia wartość osi Y
+            f"{results_table[0][0][-1]}",  # tekst do wyświetlenia
+            ha='left',  # wyrównanie do lewej od punktu
+            va='center',  # pionowo wyśrodkowany
+            fontsize=12,
+            color='#1f77b4'
+        )
+
+    pos = plt.gca().get_position()
+    param_text = (
+        f"Used parameters:\n"
+        f"Problem size: {backpack[0][0]}\n"
+        f"Population {population_size}\n"
+        f"Iterations: {iteration_count}\n"
+        f"Mutation rate: {mutation_rate}\n"
+        f"Crossover rate: {crossover_rate}\n"
+    )
+    if mode == "test_5":
+        param_text += f"Crossover type: One_point, Two_point\n"
+    else:
+        param_text += f"Crossover type: {crossover_type}\n"
+
+    if mode == "test_4":
+        param_text += "Selection type: Roulette, Ranking\n"
+    elif mode == "test_6":
+        param_text += "Selection type: Roulette, Ranking, Tournament\n"
+    else:
+        param_text += f"Selection type: {selection_type}\n"
+
+    fig.text(
+        pos.x0,  # lewa krawędź wykresu
+        pos.y1 - 0.01,  # trochę nad górą wykresu
+        param_text,
+        ha='left',
+        va='bottom',
+        fontsize=10
+    )
 
 
     # Wyświetlenie wykresu
