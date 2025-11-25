@@ -13,12 +13,12 @@ optimum_value = None
 #=============================================================DEFAULT SETTINGS========================================================================
 
 # Wstaw path dla danych i optimum
-file_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale\knapPI_1_10000_1000_1")
-file_optimum_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale-optimum\knapPI_1_10000_1000_1")
+file_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale\knapPI_1_1000_1000_1")
+file_optimum_path = Path(fr"C:\Users\Seweryn\OneDrive\Desktop\Nowy folder (2)\AlgorytmyGenetyczne\dane AG\large_scale-optimum\knapPI_1_1000_1000_1")
 file_name = file_path.name
 
 # Wybierz rodzaj testu
-mode = "test_1"
+mode = "test_5"
     # "test_1" - Basic                          - jeden wykres
     # "test_2" - Mutacje 0.006 -> 0.01          - podajesz górną granicę mutation_rate, (iteruje od dołu 5 razy co 0.001)
     # "test_3" - Krzyżowanie 0.06 -> 1          - tu crossover_rate nie ustawiaj więcej jak 0.5 (iteruje 6 razy co 0.1 do wartości 1)
@@ -27,8 +27,8 @@ mode = "test_1"
     # "test_6" - Ruletka Ranking Turniej        - selection_type nie jest uwzględniana
 
 # Ustaw dowolnie iteracje i populacje, ew mutation rate lub crossover rate
-iteration_count = 100
-population_size = 1000
+iteration_count = 16000
+population_size = 300
 mutation_rate = 0.01
 crossover_type ="one_point"     # "one_point" "two_point"
 crossover_rate = 0.5
@@ -50,12 +50,19 @@ selection_methods = {
 
 def read_data(backpack):
     global optimum_value
+
+    def to_number(x):
+        try:
+            return int(x)
+        except ValueError:
+            return float(x)
+
     with open(file_path, 'r') as file:
         while True:
             line = file.readline().strip()
             if not line:
                 break
-            data = list(map(int, line.split()))
+            data = list(map(to_number, line.split()))
             backpack.append(data)
 
     with open(file_optimum_path, "r") as f:
@@ -137,7 +144,7 @@ def draw_plot():
     # Funkcja rysująca wykres
     # Ustawienia początkowe
     iterations = list(range(1, iteration_count + 1))    # lista iteracji dla osi X
-    fig = plt.figure(figsize=(24,12))                    # rozmiar okna parametrów
+    fig = plt.figure(figsize=(24,12))                   # rozmiar okna parametrów
     font_size = 18                                      # większa czcionka dla tytułów
     second_font_size = 12                               # mniejsza czcionka dla ticków i napisów dodatkowych
 
@@ -152,25 +159,25 @@ def draw_plot():
         case "test_2":  # porównanie wartości mutacji
             for i in range(5):
                 plt.plot(iterations, results_table[i][0], label=str(results_table[i][1]["mutation_rate"]))
-            plt.title("COMPARISON OF MUTATION RATES", fontsize=font_size)
+            plt.title(f"COMPARISON OF MUTATION RATES\n {file_name}", fontsize=font_size)
             legend_title = "Mutation rate"
 
         case "test_3":  # porównanie wartości krzyżowania
             for i in range(6):
                 plt.plot(iterations, results_table[i][0], label=str(results_table[i][1]["crossover_rate"]))
-            plt.title("COMPARISON OF CROSSOVER RATES", fontsize=font_size)
+            plt.title(f"COMPARISON OF CROSSOVER RATES\n {file_name}", fontsize=font_size)
             legend_title = "Crossover rate"
 
         case "test_4":  # porównanie selekcji ruletki i rankingu
             plt.plot(iterations, results_table[0][0], label=results_table[0][1]["selection_type"])
             plt.plot(iterations, results_table[1][0], label=results_table[1][1]["selection_type"])
-            plt.title("COMPARISON OF SELECTION TYPES", fontsize=font_size)
+            plt.title(f"COMPARISON OF SELECTION TYPES\n {file_name}", fontsize=font_size)
             legend_title = "Selection type"
 
         case "test_5":  # porównanie krzyżowania jedno- i dwupunktowego
             plt.plot(iterations, results_table[0][0], label=results_table[0][1]["crossover_type"])
             plt.plot(iterations, results_table[1][0], label=results_table[1][1]["crossover_type"])
-            plt.title("COMPARISON OF CROSSOVER TYPES", fontsize=font_size)
+            plt.title(f"COMPARISON OF CROSSOVER TYPES\n {file_name}", fontsize=font_size)
             legend_title = "Crossover type"
 
         case "test_6":  # porównanie selekcji ruletki, rankingu, turnieju
@@ -217,6 +224,8 @@ def draw_plot():
             fontsize=second_font_size,
             title_fontsize=second_font_size
         )
+
+    # wyświetlanie wartości wykresu
     if mode == "test_1":
         plt.text(
             max(iterations),  # ostatnia wartość osi X
@@ -228,6 +237,7 @@ def draw_plot():
             color='#1f77b4'
         )
 
+    # Lista parametrów
     pos = plt.gca().get_position()
     param_text = (
         f"Used parameters:\n"
@@ -237,6 +247,7 @@ def draw_plot():
         f"Mutation rate: {mutation_rate}\n"
         f"Crossover rate: {crossover_rate}\n"
     )
+
     if mode == "test_5":
         param_text += f"Crossover type: One_point, Two_point\n"
     else:
@@ -249,6 +260,7 @@ def draw_plot():
     else:
         param_text += f"Selection type: {selection_type}\n"
 
+    # wyświetlenie listy parametrów
     fig.text(
         pos.x0,  # lewa krawędź wykresu
         pos.y1 - 0.01,  # trochę nad górą wykresu
